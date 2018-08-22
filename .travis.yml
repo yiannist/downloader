@@ -1,0 +1,11 @@
+language: go
+before_install:
+  curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+go:
+- 1.10.x
+services:
+- redis
+install:
+- dep ensure -v
+script:
+- make test
