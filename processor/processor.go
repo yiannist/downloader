@@ -48,6 +48,8 @@ import (
 	"sync/atomic"
 	"time"
 
+	"golang.org/x/net/http2"
+
 	"github.com/skroutz/downloader/job"
 	"github.com/skroutz/downloader/processor/diskcheck"
 	derrors "github.com/skroutz/downloader/processor/errors"
@@ -153,6 +155,13 @@ type workerPool struct {
 }
 
 func init() {
+	//Configure our transport for http2
+	//http2 is not automatically configured for transports with custom Dialers and TLSConfigs
+	//https://github.com/golang/go/commit/79d9f48c73124eb21db99efa4b97cee044f52700
+	if err := http2.ConfigureTransport(httpTransport); err != nil {
+		panic("Could not configure http2 transport for processor")
+	}
+
 	// Indicates we are in test mode
 	if _, testMode := os.LookupEnv("DOWNLOADER_TEST_TIME"); testMode {
 		RetryBackoffDuration = 200 * time.Millisecond
