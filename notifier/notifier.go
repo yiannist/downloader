@@ -80,6 +80,9 @@ type Notifier struct {
 	client      *http.Client
 	cbChan      chan job.Job
 	stats       *stats.Stats
+
+	// registered backends
+	backends map[string]Backend
 }
 
 func init() {
@@ -100,6 +103,17 @@ func New(s *storage.Storage, concurrency int, logger *log.Logger, dwnlURL string
 		return Notifier{}, errors.New("Notifier Concurrency must be a positive number")
 	}
 
+	httpBackend := &HttpBackend{}
+	httpBackend.Start()
+
+	kafkaBackend := &KafkaBackend{}
+	kafkaBackend.Start()
+
+	backends := map[string]Backend{
+		httpBackend.ID():  httpBackend,
+		kafkaBackend.ID(): kafkaBackend,
+	}
+
 	n := Notifier{
 		Storage:     s,
 		Log:         logger,
@@ -111,6 +125,7 @@ func New(s *storage.Storage, concurrency int, logger *log.Logger, dwnlURL string
 		},
 		cbChan:      make(chan job.Job),
 		DownloadURL: url,
+		backends:    backends,
 	}
 
 	n.stats = stats.New(statsID, n.StatsIntvl, func(m *expvar.Map) {
@@ -127,6 +142,11 @@ func New(s *storage.Storage, concurrency int, logger *log.Logger, dwnlURL string
 // Start starts the Notifier loop and instruments the worker goroutines that
 // perform the actual notify requests.
 func (n *Notifier) Start(closeChan chan struct{}) {
+	for id, backend := range n.backends {
+		fmt.Println("Starting", id, "backend") // TMP
+		backend.Start()
+	}
+
 	var wg sync.WaitGroup
 	wg.Add(n.concurrency)
 	for i := 0; i < n.concurrency; i++ {

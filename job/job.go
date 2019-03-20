@@ -10,6 +10,10 @@ import (
 	"github.com/skroutz/downloader/processor/mimetype"
 )
 
+// State represents the download & callback states.
+// For valid values see constants below.
+type State string
+
 // The available states of a job's DownloadState/CallbackState.
 const (
 	StatePending    = "Pending"
@@ -65,10 +69,6 @@ type Job struct {
 	// Mime type pattern provided by the client
 	MimeType string `json:"mime_type"`
 }
-
-// State represents the download & callback states.
-// For valid values see constants below.
-type State string
 
 // MarshalBinary is used by redis driver to marshall custom type State
 func (s State) MarshalBinary() (data []byte, err error) {
