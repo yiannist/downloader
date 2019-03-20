@@ -9,7 +9,8 @@ import "github.com/skroutz/downloader/job"
 //
 // Users should call Setup() once at the beginning before any calls to Notify.
 type Backend interface {
-	// TODO
+	// ID returns a constant string used as an identifier  for the
+	// concrete backend implementation.
 	ID() string
 
 	// Start() initializes the backend. Start() must be called once, before
